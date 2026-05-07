@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Pathfinder AI | Predict Your Future Study Area</title>
+  <!-- Google Fonts + clean styling -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 (free icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f6f9fc 0%, #eef2f7 100%);
+      font-family: 'Inter', sans-serif;
+      color: #1A2C3E;
+      line-height: 1.4;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1F3E5C, #2B5F8A);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero h1 i {
+      background: none;
+      background-clip: unset;
+      -webkit-background-clip: unset;
+      color: #2B5F8A;
+      font-size: 2.4rem;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #2c4e6e;
+      max-width: 650px;
+      margin: 0.8rem auto 0;
+      font-weight: 400;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(43, 95, 138, 0.12);
+      backdrop-filter: blur(2px);
+      padding: 0.25rem 1rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #1f5a7e;
+      margin-bottom: 1rem;
+    }
+
+    /* main layout: two columns */
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    .selector-panel {
+      flex: 1.2;
+      min-width: 280px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(2px);
+      border-radius: 2rem;
+      padding: 1.8rem;
+      box-shadow: 0 15px 35px -12px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    .result-panel {
+      flex: 1.8;
+      min-width: 300px;
+      background: white;
+      border-radius: 2rem;
+      padding: 1.8rem;
+      box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.12);
+      transition: all 0.2s ease;
+      border: 1px solid #e9edf2;
+    }
+
+    /* section titles */
+    .section-title {
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid #2B5F8A;
+      padding-left: 1rem;
+    }
+
+    .section-title i {
+      color: #2B5F8A;
+      font-size: 1.3rem;
+    }
+
+    /* subject interest grid */
+    .interest-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 1.2rem 0 1.8rem;
+    }
+
+    .interest-tag {
+      background: #f0f4f9;
+      padding: 0.6rem 1.2rem;
+      border-radius: 60px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      border: 1px solid #e2e8f0;
+      color: #1f3e5c;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .interest-tag i {
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    .interest-tag.selected {
+      background: #1f5a7e;
+      color: white;
+      border-color: #1f5a7e;
+      box-shadow: 0 6px 12px -8px rgba(31, 90, 126, 0.4);
+    }
+
+    .interest-tag.selected i {
+      color: white;
+      opacity: 1;
+    }
+
+    .interest-tag:hover:not(.selected) {
+      background: #e6edf4;
+      transform: translateY(-2px);
+    }
+
+    /* action button */
+    .predict-btn {
+      background: linear-gradient(100deg, #1F3E5C, #2B5F8A);
+      border: none;
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      align-items: center;
+      margin: 1rem 0 1rem;
+      box-shadow: 0 8px 18px -6px rgba(31, 62, 92, 0.3);
+    }
+
+    .predict-btn:hover {
+      background: linear-gradient(100deg, #123451, #1e4a6e);
+      transform: scale(0.98);
+      box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.2);
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid #bdd4e2;
+      color: #2c4e6e;
+      padding: 0.6rem;
+      border-radius: 40px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .reset-btn:hover {
+      background: #eef2f7;
+      border-color: #8aaec2;
+    }
+
+    /* result area */
+    .study-card {
+      background: #f9fbfd;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border: 1px solid #eef2f8;
+    }
+
+    .major-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #0b2b40;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.3px;
+    }
+
+    .department {
+      display: inline-block;
+      background: #e9f0f5;
+      padding: 0.2rem 1rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1f6e96;
+      margin-bottom: 1.2rem;
+    }
+
+    .description {
+      line-height: 1.5;
+      color: #2c3f4f;
+      margin-bottom: 1.2rem;
+      font-size: 1rem;
+    }
+
+    .skill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 1rem 0;
+    }
+
+    .skill-badge {
+      background: #e3f0f5;
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #135b7a;
+    }
+
+    .career-path {
+      background: #eef3fa;
+      border-radius: 1rem;
+      padding: 0.8rem 1rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      border-left: 3px solid #2B5F8A;
+    }
+
+    .placeholder-message {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #7e95ab;
+    }
+
+    .placeholder-message i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.6;
+    }
+
+    .selected-count {
+      font-size: 0.8rem;
+      background: #eef2f9;
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 0.8rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6f8eaa;
+      border-top: 1px solid #dce5ec;
+      padding-top: 2rem;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 1rem;
+      }
+      .hero h1 {
+        font-size: 2rem;
+      }
+      .major-title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div class="badge"><i class="fas fa-graduation-cap"></i> AI Career Compass</div>
+    <h1><i class="fas fa-chalkboard-user"></i> Future Study Predictor</h1>
+    <p>Select subjects you love — we'll predict your ideal study area & future pathways</p>
+  </div>
+
+  <div class="dashboard">
+    <!-- LEFT: subject selection panel -->
+    <div class="selector-panel">
+      <div class="section-title">
+        <i class="fas fa-flask"></i> 
+        <span>Your subject interests</span>
+      </div>
+      <p style="font-size: 0.9rem; margin-bottom: 12px;">Click on subjects you're passionate about (choose up to 5):</p>
+      <div id="subjectsContainer" class="interest-grid">
+        <!-- dynamic subject list from JS -->
+      </div>
+      <div class="selected-count" id="selectedCounter">0 subjects selected</div>
+      <button id="predictBtn" class="predict-btn"><i class="fas fa-magic"></i> Predict my future study field</button>
+      <button id="resetBtn" class="reset-btn"><i class="fas fa-undo-alt"></i> Clear all selections</button>
+    </div>
+
+    <!-- RIGHT: result panel -->
+    <div class="result-panel">
+      <div class="section-title">
+        <i class="fas fa-brain"></i>
+        <span>Your personalized study path</span>
+      </div>
+      <div id="resultArea">
+        <!-- dynamic prediction display -->
+        <div class="placeholder-message">
+          <i class="fas fa-robot"></i>
+          <p>Select your favorite subjects and click "Predict"<br> to discover your future academic journey 🔮</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <i class="fas fa-chart-line"></i> AI-powered recommendations based on interdisciplinary interest mapping • Explore your potential
+  </footer>
+</div>
+
+<script>
+  // ---------- SUBJECT DATABASE (interests mapping to study areas) ----------
+  // Each subject belongs to certain "study area" categories with a weight.
+  // We'll compute a score for each major/study area based on selected subjects.
+  
+  const STUDY_AREAS = [
+    {
+      id: "ai_data_science",
+      name: "Artificial Intelligence & Data Science",
+      department: "Computer Science / Statistics",
+      description: "Machine learning, deep learning, predictive analytics, and big data systems. Design intelligent agents that transform industries.",
+      skills: ["Python/R", "Statistics", "Neural Networks", "Data Wrangling", "Cloud Computing"],
+      careers: "AI Research Scientist, Data Engineer, ML Engineer, Business Intelligence Analyst",
+      keywords: ["programming", "math", "statistics", "computing", "algorithms", "data", "artificial intelligence", "python", "machine learning"]
+    },
+    {
+      id: "bio_med",
+      name: "Biomedical Sciences & Biotechnology",
+      department: "Life Sciences & Medicine",
+      description: "Explore cellular mechanisms, genetic engineering, drug development, and medical innovations to improve human health.",
+      skills: ["Molecular Biology", "Lab Techniques", "Bioinformatics", "Genetics", "Critical Analysis"],
+      careers: "Clinical Researcher, Biotech Analyst, Pharmacologist, Biomedical Engineer",
+      keywords: ["biology", "chemistry", "genetics", "medicine", "biotechnology", "anatomy", "ecology", "health"]
+    },
+    {
+      id: "sustainable_engineering",
+      name: "Sustainable Engineering & Renewable Energy",
+      department: "Engineering & Environmental Design",
+      description: "Design green technologies, renewable power systems, circular economies, and eco-friendly infrastructure.",
+      skills: ["Physics", "Thermodynamics", "CAD", "Systems Thinking", "Environmental Policy"],
+      careers: "Energy Consultant, Environmental Engineer, Urban Planner, Sustainability Lead",
+      keywords: ["physics", "chemistry", "environment", "sustainability", "energy", "engineering", "design", "ecology"]
+    },
+    {
+      id: "business_economics",
+      name: "Business Analytics & Economics",
+      department: "Economics & Business Administration",
+      description: "Master decision-making, market analysis, behavioral economics, and strategic management in a data-driven world.",
+      skills: ["Quantitative Analysis", "Financial Modeling", "Strategic Thinking", "Communication", "Marketing"],
+      careers: "Financial Analyst, Business Strategist, Consultant, Product Manager",
+      keywords: ["economics", "business", "mathematics", "statistics", "management", "marketing", "finance", "accounting"]
+    },
+    {
+      id: "digital_arts_media",
+      name: "Digital Media & Interactive Design",
+      department: "Design & Creative Technologies",
+      description: "Combine storytelling, UI/UX, motion graphics, and immersive experiences (VR/AR) to shape future digital culture.",
+      skills: ["Graphic Design", "User Research", "Animation", "Prototyping", "Creative Coding"],
+      careers: "UX/UI Designer, Creative Director, Game Artist, Multimedia Specialist",
+      keywords: ["arts", "design", "multimedia", "creative", "languages", "drawing", "photography", "writing"]
+    },
+    {
+      id: "cognitive_neuro",
+      name: "Cognitive Science & Neuroscience",
+      department: "Psychology & Neuroscience",
+      description: "Study the mind, brain, and behavior — bridging psychology, AI, and philosophy to understand consciousness.",
+      skills: ["Research Methods", "Neural Imaging", "Behavioral Stats", "Cognitive Modeling", "Ethics"],
+      careers: "Neuroscientist, UX Researcher, Mental Health Tech, Academic Researcher",
+      keywords: ["psychology", "biology", "philosophy", "sociology", "neuroscience", "cognition", "human behavior"]
+    },
+    {
+      id: "robotics_mechatronics",
+      name: "Robotics & Mechatronics",
+      department: "Automation & Mechanical Engineering",
+      description: "Build intelligent machines, control systems, autonomous robots, and cyber-physical systems for future automation.",
+      skills: ["C++/Python", "Electronics", "Control Theory", "Sensor Fusion", "Mechanical Design"],
+      careers: "Robotics Engineer, Automation Specialist, Drone Technician, R&D Innovator",
+      keywords: ["physics", "engineering", "computing", "mathematics", "design", "robotics", "electronics"]
+    },
+    {
+      id: "global_policy",
+      name: "International Relations & Public Policy",
+      department: "Political Science & Global Studies",
+      description: "Analyze geopolitics, international law, sustainable development, and diplomatic strategies to shape global change.",
+      skills: ["Critical Thinking", "Policy Analysis", "Negotiation", "Research Writing", "Cultural Literacy"],
+      careers: "Policy Advisor, Diplomat, NGO Leader, Legislative Analyst",
+      keywords: ["history", "sociology", "philosophy", "economics", "law", "politics", "geography"]
+    }
+  ];
+
+  // Predefined subject list with associated keywords (mapped to study areas)
+  const SUBJECTS = [
+    { name: "Mathematics", icon: "fas fa-calculator", keywords: ["mathematics", "statistics", "algorithms", "data"] },
+    { name: "Physics", icon: "fas fa-atom", keywords: ["physics", "engineering", "energy", "robotics"] },
+    { name: "Chemistry", icon: "fas fa-flask", keywords: ["chemistry", "biology", "medicine", "environment"] },
+    { name: "Biology", icon: "fas fa-dna", keywords: ["biology", "genetics", "medicine", "neuroscience", "ecology"] },
+    { name: "Computer Science", icon: "fas fa-laptop-code", keywords: ["computing", "programming", "algorithms", "data", "artificial intelligence"] },
+    { name: "Economics", icon: "fas fa-chart-line", keywords: ["economics", "business", "statistics", "finance"] },
+    { name: "Psychology", icon: "fas fa-brain", keywords: ["psychology", "cognition", "neuroscience", "human behavior"] },
+    { name: "Art & Design", icon: "fas fa-palette", keywords: ["arts", "design", "creative", "multimedia"] },
+    { name: "History", icon: "fas fa-landmark", keywords: ["history", "sociology", "politics", "law"] },
+    { name: "Geography", icon: "fas fa-globe-americas", keywords: ["geography", "environment", "sustainability", "politics"] },
+    { name: "Literature", icon: "fas fa-book-open", keywords: ["writing", "languages", "creative", "philosophy"] },
+    { name: "Sociology", icon: "fas fa-users", keywords: ["sociology", "psychology", "politics", "human behavior"] },
+    { name: "Engineering", icon: "fas fa-microchip", keywords: ["engineering", "design", "physics", "robotics", "computing"] },
+    { name: "Statistics", icon: "fas fa-chart-simple", keywords: ["statistics", "data", "mathematics", "business"] },
+    { name: "Environmental Science", icon: "fas fa-leaf", keywords: ["environment", "ecology", "sustainability", "chemistry"] },
+    { name: "Political Science", icon: "fas fa-gavel", keywords: ["politics", "law", "history", "economics"] },
+    { name: "Philosophy", icon: "fas fa-quote-right", keywords: ["philosophy", "ethics", "logic", "cognition"] },
+    { name: "Foreign Languages", icon: "fas fa-language", keywords: ["languages", "writing", "creative", "arts"] }
+  ];
+
+  // state management
+  let selectedSubjects = [];  // store names of selected subjects
+
+  // Helper: map selected subjects -> scores for each study area
+  function computeScores(selectedSubjectNames) {
+    // Gather all keywords from selected subjects
+    let combinedKeywords = [];
+    for (let subName of selectedSubjectNames) {
+      const subject = SUBJECTS.find(s => s.name === subName);
+      if (subject) {
+        combinedKeywords.push(...subject.keywords);
+      }
+    }
+    // remove duplicates by set and lowercasing
+    const uniqueKeywords = [...new Set(combinedKeywords.map(k => k.toLowerCase()))];
+    
+    // Score each study area based on how many of its associated keywords match (simple but effective)
+    const scores = STUDY_AREAS.map(area => {
+      let matchCount = 0;
+      // we also check area keywords (predefined manually inside each area)
+      const areaKeywords = area.keywords.map(k => k.toLowerCase());
+      for (let kw of uniqueKeywords) {
+        if (areaKeywords.some(ak => ak.includes(kw) || kw.includes(ak))) {
+          matchCount++;
+        }
+        // extra: exact partial boost
+        if (area.name.toLowerCase().includes(kw)) matchCount += 0.5;
+      }
+      // boost if there is direct overlap with areas like "data" and "ai_data_science"
+      // Also manage specific high-weight if subject like computer science + AI
+      if (selectedSubjectNames.includes("Computer Science") && area.id === "ai_data_science") matchCount += 1.5;
+      if (selectedSubjectNames.includes("Mathematics") && (area.id === "ai_data_science" || area.id === "business_economics")) matchCount += 1;
+      if (selectedSubjectNames.includes("Physics") && area.id === "robotics_mechatronics") matchCount += 1.2;
+      if (selectedSubjectNames.includes("Biology") && area.id === "bio_med") matchCount += 1.5;
+      if (selectedSubjectNames.includes("Art & Design") && area.id === "digital_arts_media") matchCount += 1.5;
+      if (selectedSubjectNames.includes("Psychology") && area.id === "cognitive_neuro") matchCount += 1.5;
+      if (selectedSubjectNames.includes("Environmental Science") && area.id === "sustainable_engineering") matchCount += 1.3;
+      
+      return { area, score: matchCount };
+    });
+    
+    return scores.sort((a,b) => b.score - a.score);
+  }
+  
+  // get top recommendation
+  function getTopRecommendation(selectedSubjectNames) {
+    if (!selectedSubjectNames.length) return null;
+    const scored = computeScores(selectedSubjectNames);
+    if (scored.length === 0 || scored[0].score === 0) return null;
+    return scored[0].area;
+  }
+  
+  // Render the subject selection UI
+  function renderSubjects() {
+    const container = document.getElementById('subjectsContainer');
+    container.innerHTML = '';
+    SUBJECTS.forEach(subj => {
+      const isSelected = selectedSubjects.includes(subj.name);
+      const tag = document.createElement('div');
+      tag.className = `interest-tag ${isSelected ? 'selected' : ''}`;
+      tag.innerHTML = `<i class="${subj.icon}"></i> ${subj.name}`;
+      tag.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isSelected) {
+          // remove
+          selectedSubjects = selectedSubjects.filter(s => s !== subj.name);
+        } else {
+          if (selectedSubjects.length >= 5) {
+            // small feedback but not intrusive
+            const counterSpan = document.getElementById('selectedCounter');
+            counterSpan.style.animation = 'none';
+            setTimeout(() => { counterSpan.style.animation = ''; }, 10);
+            alert("You can select up to 5 subjects for better prediction focus. Clear some if needed.");
+            return;
+          }
+          selectedSubjects.push(subj.name);
+        }
+        renderSubjects();      // re-render to update style
+        updateCounter();
+        // optional: auto clear result if you want but we keep until predict
+        const resultDiv = document.getElementById('resultArea');
+        if (!selectedSubjects.length) {
+          resultDiv.innerHTML = `<div class="placeholder-message">
+            <i class="fas fa-lightbulb"></i>
+            <p>Select some subjects and hit Predict ✨</p>
+          </div>`;
+        }
+      });
+      container.appendChild(tag);
+    });
+    updateCounter();
+  }
+  
+  function updateCounter() {
+    const counterSpan = document.getElementById('selectedCounter');
+    counterSpan.innerHTML = `${selectedSubjects.length} subject${selectedSubjects.length !== 1 ? 's' : ''} selected (max 5)`;
+  }
+  
+  // Display prediction inside result panel
+  function displayPrediction() {
+    const resultDiv = document.getElementById('resultArea');
+    if (selectedSubjects.length === 0) {
+      resultDiv.innerHTML = `<div class="placeholder-message">
+        <i class="fas fa-face-smile"></i>
+        <p>No subjects selected. Please choose at least one subject interest.</p>
+      </div>`;
+      return;
+    }
+    
+    const topArea = getTopRecommendation(selectedSubjects);
+    if (!topArea) {
+      resultDiv.innerHTML = `<div class="placeholder-message">
+        <i class="fas fa-chart-simple"></i>
+        <p>Hmm, we couldn't map precisely. Try adding more subjects or select broader interests.</p>
+      </div>`;
+      return;
+    }
+    
+    // Extract matched subjects and provide extra explanations
+    const selectedNamesList = selectedSubjects.join(", ");
+    // Build a nice card
+    const html = `
+      <div class="study-card">
+        <div class="major-title">${topArea.name}</div>
+        <div class="department"><i class="fas fa-building-columns"></i> ${topArea.department}</div>
+        <div class="description">${topArea.description}</div>
+        <div><strong style="font-size:0.85rem;"><i class="fas fa-code-branch"></i> Key competencies:</strong></div>
+        <div class="skill-list">
+          ${topArea.skills.map(skill => `<span class="skill-badge"><i class="fas fa-caret-right"></i> ${skill}</span>`).join('')}
+        </div>
+        <div class="career-path">
+          <i class="fas fa-briefcase"></i> <strong>Future pathways:</strong> ${topArea.careers}
+        </div>
+        <div style="margin-top: 14px; font-size:0.85rem; background:#eef2f8; padding: 8px 12px; border-radius: 32px;">
+          <i class="fas fa-chalkboard"></i> <strong>Based on your interests:</strong> ${selectedNamesList}
+        </div>
+      </div>
+    `;
+    resultDiv.innerHTML = html;
+  }
+  
+  // reset all selections
+  function resetSelections() {
+    selectedSubjects = [];
+    renderSubjects();
+    const resultDiv = document.getElementById('resultArea');
+    resultDiv.innerHTML = `<div class="placeholder-message">
+      <i class="fas fa-arrows-spin"></i>
+      <p>Cleared! Pick subjects you love and click Predict again 🧭</p>
+    </div>`;
+    updateCounter();
+  }
+  
+  // event binding
+  document.getElementById('predictBtn').addEventListener('click', () => {
+    if (selectedSubjects.length === 0) {
+      const resultDiv = document.getElementById('resultArea');
+      resultDiv.innerHTML = `<div class="placeholder-message">
+        <i class="fas fa-hand-peace"></i>
+        <p>Please select at least one subject to see your future study area.</p>
+      </div>`;
+      return;
+    }
+    displayPrediction();
+  });
+  
+  document.getElementById('resetBtn').addEventListener('click', resetSelections);
+  
+  // initial render
+  renderSubjects();
+  // set a default empty state
+  document.getElementById('resultArea').innerHTML = `<div class="placeholder-message">
+    <i class="fas fa-graduation-cap"></i>
+    <p>Select subjects above and press "Predict my future study field" 🌟</p>
+  </div>`;
+</script>
+</body>
+</html>
